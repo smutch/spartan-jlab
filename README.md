@@ -19,12 +19,12 @@ We search in the following order, stopping as soon as we find JupyterLab:
 If we still haven't found a jupyter-lab executable, we check current directory
 for non active environments located in:
 
-    1. ./.env
-    2. ./venv
-    3. ./env
-    4. ./.pixi/envs/dev
-    5. ./.pixi/envs/develop
-    6. ./.pixi/envs/default
+1. ./.env
+2. ./venv
+3. ./env
+4. ./.pixi/envs/dev
+5. ./.pixi/envs/develop
+6. ./.pixi/envs/default
 
 If we still haven't found Jupyter Lab, repeat this search for the next
 directory up, continuing until we hit the base of the current git repo or we
