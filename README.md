@@ -7,6 +7,17 @@
 
 See `jlab --help` for usage flags.
 
+# Installation
+
+Simply copy the latest release binary somewhere on your path on Spartan. e.g.
+
+```bash
+mkdir -p ~/bin
+cd ~/bin
+wget https://github.com/smutch/spartan-jlab/releases/latest/download/jlab
+chmod u+x jlab
+```
+
 
 # Automatic identification of JupyterLab
 
@@ -33,6 +44,7 @@ can't go any further.
 Finally, if jupyter-lab has still not been found (or you want to choose a
 different executable), you can manually specify the path using the `--jupyter`
 option.
+
 
 # Author
 
