@@ -52,7 +52,7 @@
 (cmd/main
   (cmd/fn
     `
-   Launch an interactive Jupyter lab session.
+   Launch an interactive JupyterLab session.
 
    Extra arguments, not listed below, will be passed to the srun command and override the defaults:
    -n 1 -p interactive
