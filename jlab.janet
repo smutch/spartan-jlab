@@ -53,9 +53,6 @@
   (cmd/fn
     `
    Launch an interactive JupyterLab session.
-
-   Extra arguments, not listed below, will be passed to the srun command and override the defaults:
-   -n 1 -p interactive
    `
     [[jupyter-path --jupyter -j] (optional :string)
      [--port -P] (optional :number)
