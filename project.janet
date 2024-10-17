@@ -3,7 +3,7 @@
   :description "Launch JupyterLab instances on Spartan interactive nodes"
 
   # Optional urls to git repositories that contain required artifacts.
-  :dependencies ["cmd" "sh" "spork"])
+  :dependencies ["cmd" "sh"])
 
 (declare-executable
   :name "jlab"

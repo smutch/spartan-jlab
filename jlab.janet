@@ -2,7 +2,6 @@
 
 (use sh)
 (import cmd)
-(import spork/misc)
 
 # {{{ terminal formatting
 
