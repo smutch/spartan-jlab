@@ -16,17 +16,19 @@
 
 # }}}
 
-# {{{ jupyter-lab executable search
+# {{{ jupyter-lab/marimo executable search
 
-(defmacro check-paths [& paths]
-  ~(cond
-     ,;(mapcat (fn [path]
-                 [~(os/stat (string ,path "/bin/jupyter-lab"))
-                  ~(string ,path "/bin/jupyter-lab")])
-               paths)))
+(defmacro check-paths [marimo & paths]
+  ~(let [exec (if ,marimo "/bin/marimo" "/bin/jupyter-lab")]
+     (cond
+       ,;(mapcat (fn [path]
+                   [~(os/stat (string ,path exec))
+                    ~(string ,path exec)])
+                 paths))))
 
-(defn traverse-and-check [path]
-  (or (check-paths (string path "/.venv")
+(defn traverse-and-check [marimo path]
+  (or (check-paths marimo
+                   (string path "/.venv")
                    (string path "/.env")
                    (string path "/venv")
                    (string path "/env")
@@ -36,42 +38,44 @@
       (when-let [_ (not (os/stat (string path ".git")))
                  parent (string path "/..")
                  _ (os/stat parent)]
-        (traverse-and-check parent))))
+        (traverse-and-check marimo parent))))
 
 
-(defn find-jupyter-lab [path]
-  (or (check-paths
-        (os/getenv "VIRTUAL_ENV")
-        (os/getenv "PIXI_ENV")
-        (os/getenv "CONDA_PREFIX")))
-  (traverse-and-check path))
+(defn find-exec [marimo path]
+  (or (check-paths marimo
+                   (os/getenv "VIRTUAL_ENV")
+                   (os/getenv "PIXI_ENV")
+                   (os/getenv "CONDA_PREFIX")))
+  (traverse-and-check marimo path))
 
 # }}}
 
 (cmd/main
   (cmd/fn
     `
-   Launch an interactive JupyterLab session.
+   Launch an interactive JupyterLab/Marimo session.
    `
-    [[jupyter-path --jupyter -j] (optional :string)
+    [[exec-path --exec -e] (optional :string)
      [--port -P] (optional :number)
      [--time -t] (optional :string "02:00:00")
      [--mem -m] (optional :string "64G")
      [--cpus -c] (optional :string "2")
      [--gpus -G] (optional :number)
      [--partition -p] (optional :string "interactive")
-     [--job-name -J] (optional :string "jupyter-lab")
-     [--dry-run] (flag)]
+     [--job-name -J] (optional :string "notebook")
+     [--marimo] (flag)
+     [--dry-run] (flag)
+     [--args -a] (optional :string "")]
 
     (var used-part partition)
-    (def path (or jupyter-path (find-jupyter-lab (os/getenv "PWD"))))
+    (def path (or exec-path (find-exec marimo (os/getenv "PWD"))))
 
     (if (nil? path)
       (do
-        (printf "%sFailed to find jupyter-lab executable!%s\n" (format :red) (format :reset))
+        (printf "%sFailed to find jupyter-lab/marimo executable!%s\n" (format :red) (format :reset))
         (os/exit 1)))
 
-    (printf "\nUsing jupyter-lab executable at %s\n" path)
+    (printf "\nUsing jupyter-lab/marimo executable at %s\n" path)
 
     (if (and (= used-part "interactive") gpus)
       (do
@@ -93,6 +97,8 @@
 
     (def connect-string (string/format "ssh -NL %d:localhost:%d -J spartan.hpc.unimelb.edu.au $(hostname -s)" use-port use-port))
 
+    (def exec-opts (if marimo ["edit"] ["--no-browser"]))
+
     (def submit-script
       (string/format `
            banner() {
@@ -108,9 +114,9 @@
            banner "Use this to connect:" "%s"
 		   echo "%sIf your terminal (and multiplexer) supports it this command will already be on your clipboard!%s"
 		   echo ""
-           %s --no-browser --port %d
+           %s %s --port %d %s
            `
-                     (format :yellow) (format :bold) (format :reset) connect-string connect-string (format :grey) (format :reset) path use-port))
+                     (format :yellow) (format :bold) (format :reset) connect-string connect-string (format :grey) (format :reset) path (string/join exec-opts " ") use-port args))
 
     (if-not dry-run ($ srun ,;srun-opts bash -c ,submit-script))))
 
